@@ -174,7 +174,8 @@ def build_vertex_closure(
         jidx=jidx, part=part)
 
     if params_to_opt is None:
-        params_to_opt = [p for key, p in var_dict.items()]
+        params_to_opt = [p for key, p in var_dict.items() if 'betas' not in key]
+        #print(params_to_opt)
 
     def closure(backward=True):
         if backward:
@@ -222,6 +223,9 @@ def get_variables(
                 device=device, dtype=dtype),
             'betas': torch.zeros([batch_size, body_model.num_betas],
                                  dtype=dtype, device=device),
+            #batch_size=1, body_model.num_betas=10, so betas is torch.zeros([1,10], dtype ...)
+            'betas': torch.tensor([[1.251, -0.842, -5.522, -0.091, 0.181, 0.108, 0.295, 0.001, -0.053, -0.037]],
+                                 dtype=dtype, device=device),
         })
 
     if body_model.name() == 'SMPL+H' or body_model.name() == 'SMPL-X':
@@ -250,6 +254,9 @@ def get_variables(
     # Toggle gradients to True
     for key, val in var_dict.items():
         val.requires_grad_(True)
+        #disable betas gradient, set it as constant
+    var_dict['betas'].requires_grad_(False)
+    #print(var_dict)
 
     return var_dict
 
@@ -273,7 +280,7 @@ def run_fitting(
 
     # Get the parameters from the model
     var_dict = get_variables(batch_size, body_model)
-
+    print(var_dict) #here is initialization
     # Build the optimizer object for the current batch
     optim_cfg = exp_cfg.get('optim', {})
 
@@ -361,7 +368,8 @@ def run_fitting(
                  summary_steps=summary_steps,
                  interactive=interactive,
                  **optim_cfg)
-
+    print("first optimize")
+    print(var_dict)
     #  Optimize all model parameters with vertex-based loss
     optimizer_dict = build_optimizer(list(var_dict.values()), optim_cfg)
     closure = build_vertex_closure(
@@ -379,6 +387,8 @@ def run_fitting(
              **optim_cfg)
 
     param_dict = {}
+    print("final optimize")
+    print(var_dict)
     for key, var in var_dict.items():
         # Decode the axis-angles
         if 'pose' in key or 'orient' in key:

@@ -136,6 +136,7 @@ class SMPL(nn.Module):
             with open(smpl_path, 'rb') as smpl_file:
                 data_struct = Struct(**pickle.load(smpl_file,
                                                    encoding='latin1'))
+                #print(smpl_path)
 
         super(SMPL, self).__init__()
         self.batch_size = batch_size

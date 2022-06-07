@@ -51,11 +51,15 @@ def main(model_folder,
 
     output = model(betas=betas, expression=expression,
                    return_verts=True)
+    #print(output.joints[0])
+    #Joints shape = (127, 3)
+    #take custom.pkl model.joints , replace output.joints
     vertices = output.vertices.detach().cpu().numpy().squeeze()
     joints = output.joints.detach().cpu().numpy().squeeze()
 
     print('Vertices shape =', vertices.shape)
     print('Joints shape =', joints.shape)
+    print(joints)
 
     if plotting_module == 'pyrender':
         import pyrender
@@ -96,6 +100,7 @@ def main(model_folder,
 
         if plot_joints:
             ax.scatter(joints[:, 0], joints[:, 1], joints[:, 2], alpha=0.1)
+        fig.savefig('fig1.pdf')
         plt.show()
     elif plotting_module == 'open3d':
         import open3d as o3d
@@ -178,3 +183,4 @@ if __name__ == '__main__':
          sample_expression=sample_expression,
          plotting_module=plotting_module,
          use_face_contour=use_face_contour)
+    print("finish")
